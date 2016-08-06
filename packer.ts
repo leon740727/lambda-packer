@@ -93,14 +93,17 @@ class Module {
 
 class Lambda {
     name: string;
-    constructor(name: string) {
+    js: string;
+    constructor(name: string, js: string) {
+        if (! js.match(/\.js$/)) throw "錯誤: js 檔必須以 .js 為檔名結尾";
         this.name = name;
+        this.js = js;
     }
-    get js() {
-        return this.name + ".js";
+    static restore(data: Jsonable) {
+        return new Lambda(data["name"], data["js"]);
     }
     get zip() {
-        return this.name + ".zip";
+        return this.js.replace(/\.js$/, ".zip");
     }
     get code() {
         return fs.readFileSync(this.js, "utf-8");
@@ -191,7 +194,7 @@ function isTodo(lambda: Lambda, allLogs: Log[]) {
 
 function loadLambdas(file: string): Lambda[] {
     if (fs.existsSync(file)) {
-        return (<string[]>JSON.parse(fs.readFileSync(file, "utf-8"))).map(name => new Lambda(name));
+        return (<Jsonable[]>JSON.parse(fs.readFileSync(file, "utf-8"))).map(Lambda.restore);
     } else {
         return []
     }
