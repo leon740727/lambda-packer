@@ -94,7 +94,7 @@ class Module {
             } else {
                 deps = Module.genByNodeMoudle(m.path).filter(not(includeIn(exists)));
             };
-            return uniq(deps.concat(List.of(deps).chain(d => getDeps(d, exists.concat(deps)))));
+            return uniq(deps.concat(List.of(deps).chain(d => getDeps(d, exists.concat(deps))).map(i => i)));
         }
         return getDeps(this, []);
     }
