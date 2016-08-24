@@ -81,13 +81,22 @@ class Module {
         return this.path.endsWith(".js");
     }
     get dependencies(): Module[] {
-        let deps: Module[];
-        if (this.isJs) {
-            deps = Module.genByJsCode(this.path);
-        } else {
-            deps = Module.genByNodeMoudle(this.path);
+        function includeIn<T>(list: T[]) {
+            return (target: T) => indexOf(target, list) > -1;
         }
-        return uniq(deps.concat(List.of(deps).chain(d => d.dependencies).map(i => i)));
+        function not<T>(f: (arg: T) => boolean) {
+            return (arg: T) => ! f(arg);
+        }
+        function getDeps(m: Module, exists: Module[]): Module[] {
+            let deps: Module[];
+            if (m.isJs) {
+                deps = Module.genByJsCode(m.path).filter(not(includeIn(exists)));
+            } else {
+                deps = Module.genByNodeMoudle(m.path).filter(not(includeIn(exists)));
+            };
+            return uniq(deps.concat(List.of(deps).chain(d => getDeps(d, exists.concat(deps)))));
+        }
+        return getDeps(this, []);
     }
 }
 
